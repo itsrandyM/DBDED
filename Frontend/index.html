@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Management System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center">Student Management System</h1>
+
+        <!-- Form Submission for Student Registration -->
+        <div class="card mt-5">
+            <div class="card-body">
+                <h3>Student Registration</h3>
+                <form id="registerForm">
+                    <div class="mb-3">
+                        <label for="fullName" class="form-label">Full Name</label>
+                        <input type="text" id="fullName" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" id="email" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <input type="password" id="password" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="phoneNumber" class="form-label">Phone Number</label>
+                        <input type="text" id="phoneNumber" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="parentContact" class="form-label">Parent Contact</label>
+                        <input type="text" id="parentContact" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="dob" class="form-label">Date of Birth</label>
+                        <input type="date" id="dob" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="highSchool" class="form-label">High School</label>
+                        <input type="text" id="highSchool" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Register</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Teacher Dashboard -->
+        <div class="card mt-5">
+            <div class="card-body">
+                <h3>Teacher Dashboard</h3>
+                <form id="addScoreForm">
+                    <div class="mb-3">
+                        <label for="studentId" class="form-label">Student ID</label>
+                        <input type="number" id="studentId" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="score" class="form-label">Score</label>
+                        <input type="number" id="score" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn btn-success">Add Score</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Admin Dashboard -->
+        <div class="card mt-5">
+            <div class="card-body">
+                <h3>Admin Dashboard</h3>
+                <button id="loadStatistics" class="btn btn-info">Load Statistics</button>
+                <div id="statistics" class="mt-3"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Handle Student Registration Form Submission
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault(); // Prevent the default form submission
+            try {
+                // Collect form data
+                const data = {
+                    fullName: document.getElementById('fullName').value,
+                    email: document.getElementById('email').value,
+                    password: document.getElementById('password').value,
+                    phoneNumber: document.getElementById('phoneNumber').value,
+                    parentContact: document.getElementById('parentContact').value,
+                    dob: document.getElementById('dob').value,
+                    highSchool: document.getElementById('highSchool').value
+                };
+                // Send POST request to the backend to register the student
+                await axios.post('http://localhost:3000/register', data);
+                alert('Student registered successfully!'); // Display success message
+            } catch (error) {
+                alert('Error registering student.'); // Display error message if registration fails
+            }
+        });
+
+        // Handle Teacher Dashboard Form Submission to Add Score
+        document.getElementById('addScoreForm').addEventListener('submit', async (e) => {
+            e.preventDefault(); // Prevent the default form submission
+            try {
+                // Prompt the teacher for their JWT token to authenticate the request
+                const token = prompt('Enter your access token:'); // Teacher should enter their JWT token
+                const data = {
+                    studentId: document.getElementById('studentId').value,
+                    score: document.getElementById('score').value
+                };
+                // Send POST request to the backend to add a coding score for a student
+                await axios.post('http://localhost:3000/add_coding_score', data, {
+                    headers: { Authorization: `Bearer ${token}` } // Add the token to the request headers for authentication
+                });
+                alert('Score added successfully!'); // Display success message
+            } catch (error) {
+                alert('Error adding score.'); // Display error message if adding score fails
+            }
+        });
+
+        // Handle Admin Dashboard - Load Statistics
+        document.getElementById('loadStatistics').addEventListener('click', async () => {
+            try {
+                // Prompt the admin for their JWT token to authenticate the request
+                const token = prompt('Enter your admin access token:'); // Admin should enter their JWT token
+                // Send GET request to the backend to load aggregated statistics
+                const response = await axios.get('http://localhost:3000/statistics', {
+                    headers: { Authorization: `Bearer ${token}` } // Add the token to the request headers for authentication
+                });
+                // Display the statistics in a formatted way
+                document.getElementById('statistics').innerText = JSON.stringify(response.data, null, 2);
+            } catch (error) {
+                alert('Error loading statistics.'); // Display error message if loading statistics fails
+            }
+        });
+    </script>
+</body>
+</html>
