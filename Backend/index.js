@@ -148,6 +148,7 @@ app.post('/register', async (req, res) => {
       dob: new Date(dob),
       highSchool,
     });
+    console.log(student)
     res.status(201).json({ message: 'Student registered successfully' });
   } catch (error) {
     res.status(500).json({ error: 'Error registering student' });
