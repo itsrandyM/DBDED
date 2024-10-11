@@ -135,12 +135,6 @@ const corsOptions = {
   optionsSuccessStatus: 200, 
 };
 
-//cors options
-const corsOptions = {
-  origin: 'https://dbded.vercel.app',  
-  optionsSuccessStatus: 200, 
-};
-
 // Middleware
 app.use(express.json());
 app.use(cors(corsOptions))
