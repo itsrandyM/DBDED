@@ -131,7 +131,7 @@ Project.init(
 );
  
 const corsOptions = {
-  origin: ['direct-ed-database.vercel.app', 'http://127.0.0.1:5500'],
+  origin: ['https://dbded-git-main-itsrandyms-projects.vercel.app', 'http://127.0.0.1:5500'],
   optionsSuccessStatus: 200, 
 };
 
