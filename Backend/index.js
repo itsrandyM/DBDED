@@ -130,9 +130,15 @@ Project.init(
   }
 );
 
+//cors options
+const corsOptions = {
+  origin: 'https://dbded.vercel.app',  
+  optionsSuccessStatus: 200, 
+};
+
 // Middleware
 app.use(express.json());
-app.use(cors())
+app.use(cors(corsOptions))
 
 // Routes
 app.post('/register', async (req, res) => {
