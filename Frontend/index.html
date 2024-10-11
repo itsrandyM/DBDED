@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student Management System</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/jquery/dist/jquery.min.js"></script> 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 </head>
 <body>
@@ -67,6 +69,34 @@
             </div>
         </div>
 
+        <!-- Admin Login Modal -->
+<div id="adminLoginModal" class="modal fade" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Admin Login</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="adminLoginForm">
+                    <div class="mb-3">
+                        <label for="adminEmail" class="form-label">Email</label>
+                        <input type="email" id="adminEmail" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="adminPassword" class="form-label">Password</label>
+                        <input type="password" id="adminPassword" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Login</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
         <!-- Admin Dashboard -->
         <div class="card mt-5">
             <div class="card-body">
@@ -96,8 +126,9 @@
                 await axios.post('https://dbded.onrender.com/register', data);
                 alert('Student registered successfully!'); // Display success message
             } catch (error) {
-                alert('Error registering student.'); // Display error message if registration fails
-            }
+               console.error('Registration error:', error.response ? error.response.data : error.message);
+               alert('Error registering student: ' + (error.response ? error.response.data.message : 'Unknown error.'));
+}
         });
 
         // Handle Teacher Dashboard Form Submission to Add Score
@@ -115,25 +146,57 @@
                     headers: { Authorization: `Bearer ${token}` } // Add the token to the request headers for authentication
                 });
                 alert('Score added successfully!'); // Display success message
-            } catch (error) {
-                alert('Error adding score.'); // Display error message if adding score fails
-            }
+            } catch(error) {
+              console.error('Adding score error:', error.response ? error.response.data : error.message);
+              alert('Error adding score: ' + (error.response ? error.response.data.message : 'Unknown error.'));
+}
         });
+
+        // Handle Admin Login Form Submission
+document.getElementById('adminLoginForm').addEventListener('submit', async (e) => {
+    e.preventDefault(); // Prevent default form submission
+    try {
+        const adminData = {
+            email: document.getElementById('adminEmail').value,
+            password: document.getElementById('adminPassword').value,
+        };
+        // Send POST request to the admin login endpoint
+        const response = await axios.post('https://dbded.onrender.com/admin', adminData);
+        // Store the token in local storage
+        localStorage.setItem('adminToken', response.data.accessToken);
+        alert('Login successful! Token obtained.');
+        // Close the modal after login
+        $('#adminLoginModal').modal('hide');
+    } catch (error) {
+        alert('Error logging in.'); // Handle error
+        console.error('Login error:', error.response ? error.response.data : error.message);
+    }
+});
+
 
         // Handle Admin Dashboard - Load Statistics
         document.getElementById('loadStatistics').addEventListener('click', async () => {
             try {
-                // Prompt the admin for their JWT token to authenticate the request
-                const token = prompt('Enter your admin access token:'); // Admin should enter their JWT token
+                const token = localStorage.getItem('adminToken'); // Get token from local storage
+            if (!token) {
+          // Optionally, show the login modal here
+             $('#adminLoginModal').modal('show');
+             return;
+    }
                 // Send GET request to the backend to load aggregated statistics
                 const response = await axios.get('https://dbded.onrender.com/statistics', {
                     headers: { Authorization: `Bearer ${token}` } // Add the token to the request headers for authentication
                 });
                 // Display the statistics in a formatted way
-                document.getElementById('statistics').innerText = JSON.stringify(response.data, null, 2);
-            } catch (error) {
-                alert('Error loading statistics.'); // Display error message if loading statistics fails
-            }
+                const stats = response.data;
+                document.getElementById('statistics').innerHTML = `
+               <h5>Total Students: ${stats.totalStudents}</h5>
+               <h5>Total Reported Income: $${stats.totalReportedIncome}</h5>
+        `;
+            } catch  (error) {
+            console.error('Loading statistics error:', error.response ? error.response.data : error.message);
+            alert('Error loading statistics: ' + (error.response ? error.response.data.message : 'Unknown error.'));
+}
         });
     </script>
 </body>
