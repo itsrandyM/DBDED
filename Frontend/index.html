@@ -93,7 +93,7 @@
                     highSchool: document.getElementById('highSchool').value
                 };
                 // Send POST request to the backend to register the student
-                await axios.post('https://direct-ed-database.vercel.app/register', data);
+                await axios.post('https://dbded.onrender.com/register', data);
                 alert('Student registered successfully!'); // Display success message
             } catch (error) {
                 alert('Error registering student.'); // Display error message if registration fails
@@ -111,7 +111,7 @@
                     score: document.getElementById('score').value
                 };
                 // Send POST request to the backend to add a coding score for a student
-                await axios.post('https://direct-ed-database.vercel.app/add_coding_score', data, {
+                await axios.post('https://localhost:3000/add_coding_score', data, {
                     headers: { Authorization: `Bearer ${token}` } // Add the token to the request headers for authentication
                 });
                 alert('Score added successfully!'); // Display success message
@@ -126,7 +126,7 @@
                 // Prompt the admin for their JWT token to authenticate the request
                 const token = prompt('Enter your admin access token:'); // Admin should enter their JWT token
                 // Send GET request to the backend to load aggregated statistics
-                const response = await axios.get('https://direct-ed-database.vercel.app/statistics', {
+                const response = await axios.get('http://localhost:3000/statistics', {
                     headers: { Authorization: `Bearer ${token}` } // Add the token to the request headers for authentication
                 });
                 // Display the statistics in a formatted way

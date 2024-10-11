@@ -129,15 +129,63 @@ Project.init(
     modelName: 'Project',
   }
 );
+
+class Admin extends Model {}
+
+Admin.init(
+  {
+    id: {
+      type: DataTypes.INTEGER,
+      autoIncrement: true,
+      primaryKey: true,
+    },
+    email: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      unique: true,
+    },
+    passwordHash: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+  },
+  {
+    sequelize,
+    modelName: 'Admin',
+  }
+);
+
  
 const corsOptions = {
-  origin: ['https://dbded.vercel.app', 'http://localhost:3000'],
+  origin: ['https://dbded.vercel.app', 'http://localhost:3000', 'http://127.0.0.1:5500'],
   optionsSuccessStatus: 200, 
 };
 
 // Middleware
 app.use(express.json());
 app.use(cors(corsOptions))
+
+//middleware
+const authenticateAdmin = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ message: 'Access denied. No token provided.' });
+  }
+
+  const token = authHeader.split(' ')[1];
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    // Assuming the admin role is set in the token
+    if (decoded.role !== 'admin') {
+      return res.status(403).json({ message: 'Access forbidden. Admins only.' });
+    }
+    req.user = decoded; // Store decoded token data in request
+    next();
+  } catch (error) {
+    return res.status(400).json({ message: 'Invalid token.' });
+  }
+};
+
 
 // Routes
 app.post('/register', async (req, res) => {
@@ -172,6 +220,74 @@ app.post('/login', async (req, res) => {
     }
   } catch (error) {
     res.status(500).json({ error: 'Error logging in' });
+  }
+});
+
+app.post('/admin', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    // Check if the password is provided
+    if (!password) {
+      return res.status(400).json({ message: 'Password is required' });
+    }
+
+    // Check if the admin already exists
+    const existingAdmin = await Admin.findOne({ where: { email } });
+
+    if (existingAdmin) {
+      // Admin exists, attempt to log in
+      const isValidPassword = await bcrypt.compare(password, existingAdmin.passwordHash);
+      if (isValidPassword) {
+        const token = jwt.sign({ id: existingAdmin.id, role: 'admin' }, JWT_SECRET);
+        return res.json({ accessToken: token });
+      } else {
+        return res.status(401).json({ message: 'Invalid credentials' });
+      } 
+    } else {
+      // Admin does not exist, register new admin
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const admin = await Admin.create({
+        email,
+        passwordHash: hashedPassword,
+      });
+      const token = jwt.sign({ id: admin.id, role: 'admin' }, JWT_SECRET);
+      return res.status(201).json({ accessToken: token, message: 'Admin registered successfully' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: 'Error processing request' });
+  }
+});
+
+
+app.get('/statistics', authenticateAdmin, async (req, res) => {
+  try {
+    // Aggregate data for statistics
+    const totalStudents = await Student.count();
+    const totalReportedIncome = await Student.sum('reportedIncome');
+    // const averageSkillRating = await Student.avg('skillRating');
+
+    const statistics = {
+      totalStudents,
+      totalReportedIncome: totalReportedIncome || 0,  // Handle null cases
+      // averageSkillRating: averageSkillRating || 0,    // Handle null cases
+    };
+
+    res.status(200).json(statistics);
+  } catch (error) {
+    console.error('Error fetching statistics:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
+
+app.post('/add_project', async (req, res) => {
+  try {
+    const studentId = req.user.id;
+    const { projectName, description } = req.body;
+    await Project.create({ studentId, projectName, description });
+    res.status(201).json({ message: 'Project added successfully' });
+  } catch (error) {
+    res.status(500).json({ error: 'Error adding project' });
   }
 });
 
