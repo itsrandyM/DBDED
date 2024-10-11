@@ -157,7 +157,7 @@ Admin.init(
 
  
 const corsOptions = {
-  origin: ['https://dbded.vercel.app', 'http://localhost:3000', 'http://127.0.0.1:5500'],
+  origin: true,
   optionsSuccessStatus: 200, 
 };
 
