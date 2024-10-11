@@ -131,7 +131,7 @@ Project.init(
 );
  
 const corsOptions = {
-  origin: ['https://dbded.vercel.app', 'http://127.0.0.1:5500'],
+  origin: ['direct-ed-database.vercel.app', 'http://127.0.0.1:5500'],
   optionsSuccessStatus: 200, 
 };
 
